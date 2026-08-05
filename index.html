@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edwards Setting & Restoration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#EDE8DA;
+    --cream-2:#E2DCC9;
+    --ink:#1C1A16;
+    --ink-soft:#3A362E;
+    --brown:#9C6B47;
+    --brown-dark:#7A4F32;
+    --tan:#C9A87C;
+    --green:#4B5D46;
+    --line: rgba(28,26,22,0.14);
+    --hex: polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0% 50%);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Jost', sans-serif;
+    font-weight:400;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.serif{ font-family:'Cormorant Garamond', serif; }
+  a{ color:inherit; text-decoration:none; }
+  ul{ list-style:none; }
+  img{ max-width:100%; display:block; }
+  button{ font-family:inherit; cursor:pointer; border:none; background:none; }
+
+  .hex{ clip-path: var(--hex); -webkit-clip-path: var(--hex); }
+
+  /* ---------- Nav ---------- */
+  header{
+    position:sticky; top:0; z-index:100;
+    background:rgba(237,232,218,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-wrap{
+    max-width:1180px; margin:0 auto;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 28px;
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand-mark{
+    width:34px; height:34px; background:var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .brand-mark span{
+    font-family:'Cormorant Garamond', serif; color:var(--cream);
+    font-size:19px; font-weight:600;
+  }
+  .brand-name{
+    font-family:'Cormorant Garamond', serif;
+    font-size:19px; letter-spacing:0.02em; line-height:1.05;
+  }
+  .brand-name b{ font-weight:600; display:block; }
+  .brand-name small{
+    font-family:'Jost', sans-serif; font-size:10.5px;
+    letter-spacing:0.16em; color:var(--brown-dark); text-transform:uppercase;
+  }
+  nav ul{ display:flex; gap:2px; }
+  nav a{
+    font-size:13.5px; letter-spacing:0.04em; text-transform:uppercase;
+    padding:10px 16px; border-radius:2px; color:var(--ink-soft);
+    transition:color .2s ease;
+    position:relative;
+  }
+  nav a::after{
+    content:""; position:absolute; left:16px; right:16px; bottom:6px; height:1px;
+    background:var(--brown); transform:scaleX(0); transform-origin:left;
+    transition:transform .25s ease;
+  }
+  nav a:hover{ color:var(--ink); }
+  nav a:hover::after{ transform:scaleX(1); }
+  nav a.active{ color:var(--ink); font-weight:500; }
+  nav a.active::after{ transform:scaleX(1); }
+  .nav-toggle{ display:none; }
+
+  /* ---------- Sections / pages ---------- */
+  .page{ display:none; }
+  .page.active{ display:block; animation:fadein .5s ease; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 28px; }
+  .eyebrow{
+    font-size:12px; letter-spacing:0.22em; text-transform:uppercase;
+    color:var(--brown-dark); font-weight:500; margin-bottom:14px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{
+    content:""; width:22px; height:1px; background:var(--brown-dark);
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    background:var(--ink); color:var(--cream);
+    position:relative; overflow:hidden;
+    padding:100px 0 90px;
+  }
+  .hero .wrap{
+    display:grid; grid-template-columns:1.15fr 0.85fr; gap:60px; align-items:center;
+  }
+  .hero-eyebrow{
+    font-size:12px; letter-spacing:0.24em; text-transform:uppercase;
+    color:var(--tan); margin-bottom:22px;
+  }
+  .hero h1{
+    font-size:clamp(38px, 5vw, 60px); font-weight:500; line-height:1.08;
+    max-width:640px;
+  }
+  .hero h1 em{ font-style:italic; color:var(--tan); font-weight:500;}
+  .hero p{
+    margin-top:24px; max-width:480px; font-size:16.5px; line-height:1.7;
+    color:rgba(237,232,218,0.75); font-weight:300;
+  }
+  .hero-ctas{ margin-top:38px; display:flex; gap:14px; flex-wrap:wrap; }
+  .btn{
+    padding:14px 26px; font-size:13px; letter-spacing:0.06em; text-transform:uppercase;
+    display:inline-block; transition:all .2s ease; border:1px solid transparent;
+  }
+  .btn-primary{ background:var(--brown); color:var(--cream); }
+  .btn-primary:hover{ background:var(--tan); color:var(--ink); }
+  .btn-ghost{ border-color:rgba(237,232,218,0.35); color:var(--cream); }
+  .btn-ghost:hover{ border-color:var(--tan); color:var(--tan); }
+  .btn-dark{ background:var(--ink); color:var(--cream); }
+  .btn-dark:hover{ background:var(--brown-dark); }
+
+  .hero-facet{
+    position:relative; height:420px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .facet-hex{
+    position:absolute; clip-path:var(--hex); -webkit-clip-path:var(--hex);
+    border:1px solid rgba(201,168,124,0.5);
+  }
+  .facet-hex.f1{ width:260px; height:300px; background:linear-gradient(135deg, rgba(201,168,124,0.16), rgba(156,107,71,0.05)); animation:spinSlow 22s linear infinite; }
+  .facet-hex.f2{ width:170px; height:196px; border-color:rgba(201,168,124,0.8); background:linear-gradient(135deg, rgba(201,168,124,0.3), transparent); animation:spinSlow 16s linear infinite reverse; }
+  .facet-hex.f3{ width:90px; height:104px; background:var(--brown); animation:glint 3.2s ease-in-out infinite; }
+  @keyframes spinSlow{ from{ transform:rotate(0deg);} to{ transform:rotate(360deg);} }
+  @keyframes glint{ 0%,100%{ opacity:0.7; } 50%{ opacity:1; box-shadow:0 0 40px 6px rgba(201,168,124,0.35); } }
+
+  /* ---------- Section headers ---------- */
+  .section{ padding:88px 0; border-bottom:1px solid var(--line); }
+  .section-head{ max-width:640px; margin-bottom:56px; }
+  .section-head h2{ font-size:clamp(30px,3.6vw,42px); font-weight:500; line-height:1.15; }
+  .section-head p{ margin-top:16px; color:var(--ink-soft); font-size:15.5px; line-height:1.7; max-width:520px; font-weight:300; }
+
+  /* ---------- Services ---------- */
+  .svc-hero{ background:var(--cream-2); }
+  .svc-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); }
+  .svc-card{ background:var(--cream); padding:38px 32px; }
+  .svc-icon{ width:46px; height:52px; margin-bottom:24px; }
+  .svc-card h3{ font-size:22px; font-weight:600; margin-bottom:12px; }
+  .svc-card p{ font-size:14.5px; line-height:1.7; color:var(--ink-soft); font-weight:300; }
+  .svc-note{ margin-top:6px; font-size:12.5px; color:var(--brown-dark); font-weight:500; letter-spacing:0.02em;}
+
+  .process{ background:var(--ink); color:var(--cream); padding:90px 0; }
+  .process .section-head p{ color:rgba(237,232,218,0.7); }
+  .process .eyebrow{ color:var(--tan); }
+  .process .eyebrow::before{ background:var(--tan); }
+  .process-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:0; border-top:1px solid rgba(237,232,218,0.18); }
+  .process-step{ padding:30px 26px 0; border-right:1px solid rgba(237,232,218,0.18); }
+  .process-step:last-child{ border-right:none; }
+  .process-step .num{ font-family:'Cormorant Garamond', serif; font-size:15px; color:var(--tan); margin-bottom:14px; display:block; }
+  .process-step h4{ font-size:18px; font-weight:500; margin-bottom:10px; font-family:'Cormorant Garamond', serif; }
+  .process-step p{ font-size:13.5px; line-height:1.65; color:rgba(237,232,218,0.65); font-weight:300; padding-bottom:30px;}
+
+  /* ---------- About ---------- */
+  .about-hero .wrap{ display:grid; grid-template-columns:0.9fr 1.1fr; gap:70px; align-items:center; }
+  .about-portrait{
+    aspect-ratio:4/5; background:linear-gradient(160deg, var(--ink) 0%, #2b271f 60%, var(--brown-dark) 100%);
+    position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;
+  }
+  .about-portrait .hex{ position:absolute; }
+  .about-portrait .ph1{ width:70%; height:60%; border:1px solid rgba(201,168,124,0.5); }
+  .about-portrait .ph2{ width:38%; height:32%; background:rgba(201,168,124,0.25); }
+  .about-portrait figcaption{
+    position:absolute; bottom:18px; left:18px; right:18px; font-size:11.5px;
+    color:rgba(237,232,218,0.55); letter-spacing:0.04em;
+  }
+  .about-copy .eyebrow{ margin-bottom:18px; }
+  .about-copy h2{ font-size:clamp(30px,3.6vw,44px); font-weight:500; line-height:1.14; margin-bottom:22px;}
+  .about-copy p{ font-size:15.5px; line-height:1.8; color:var(--ink-soft); font-weight:300; margin-bottom:16px; }
+  .about-stats{ display:flex; gap:44px; margin-top:36px; padding-top:30px; border-top:1px solid var(--line); }
+  .about-stats .stat b{ font-family:'Cormorant Garamond', serif; font-size:34px; font-weight:600; display:block; color:var(--brown-dark); }
+  .about-stats .stat span{ font-size:12px; letter-spacing:0.05em; text-transform:uppercase; color:var(--ink-soft); }
+
+  .values{ background:var(--cream-2); }
+  .values-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:40px; }
+  .value-item{ display:flex; gap:16px; }
+  .value-mark{ width:32px; height:37px; flex-shrink:0; margin-top:2px; }
+  .value-item h4{ font-family:'Cormorant Garamond', serif; font-size:19px; font-weight:600; margin-bottom:8px; }
+  .value-item p{ font-size:14px; line-height:1.65; color:var(--ink-soft); font-weight:300; }
+
+  /* ---------- Portfolio ---------- */
+  .portfolio-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:34px 28px; }
+  .p-item{ display:flex; flex-direction:column; }
+  .p-frame{
+    aspect-ratio:1/1; position:relative;
+    clip-path:var(--hex); -webkit-clip-path:var(--hex);
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(150deg, var(--cream-2), #d6cfb8);
+    border:1px solid var(--line);
+  }
+  .p-frame .g1{ background:linear-gradient(140deg, var(--brown) 0%, var(--tan) 45%, var(--ink) 100%); }
+  .p-frame .g2{ background:linear-gradient(140deg, var(--ink) 0%, var(--brown-dark) 60%, var(--tan) 100%); }
+  .p-frame .g3{ background:linear-gradient(140deg, var(--tan) 0%, var(--cream-2) 55%, var(--brown) 100%); }
+  .p-frame.fill{ width:100%; height:100%; position:absolute; opacity:0.9; }
+  .p-frame .p-tag{
+    position:relative; z-index:2; font-family:'Cormorant Garamond', serif; font-style:italic;
+    color:rgba(237,232,218,0.9); font-size:14px; text-align:center; padding:0 30px;
+  }
+  .p-caption{ margin-top:16px; }
+  .p-caption h4{ font-size:16.5px; font-weight:500; font-family:'Cormorant Garamond', serif; }
+  .p-caption p{ font-size:12.5px; color:var(--ink-soft); margin-top:4px; font-weight:300; }
+  .portfolio-note{
+    margin-top:56px; padding:22px 26px; border:1px dashed var(--brown); background:var(--cream-2);
+    font-size:13.5px; color:var(--ink-soft); font-weight:300; max-width:640px; line-height:1.7;
+  }
+  .portfolio-note b{ color:var(--brown-dark); font-weight:600; }
+
+  /* ---------- Contact ---------- */
+  .contact-hero .wrap{ display:grid; grid-template-columns:0.9fr 1.1fr; gap:70px; }
+  .contact-info .eyebrow{ margin-bottom:18px; }
+  .contact-info h2{ font-size:clamp(30px,3.6vw,42px); font-weight:500; margin-bottom:20px; }
+  .contact-info > p{ font-size:15px; line-height:1.75; color:var(--ink-soft); font-weight:300; margin-bottom:34px; max-width:420px;}
+  .info-block{ display:flex; gap:16px; padding:20px 0; border-top:1px solid var(--line); }
+  .info-block:last-child{ border-bottom:1px solid var(--line); }
+  .info-mark{ width:26px; height:30px; flex-shrink:0; margin-top:3px; }
+  .info-block h4{ font-size:12px; letter-spacing:0.06em; text-transform:uppercase; color:var(--brown-dark); margin-bottom:6px; font-weight:600;}
+  .info-block p{ font-size:14.5px; color:var(--ink-soft); line-height:1.6; font-weight:300; }
+
+  .contact-form{ background:var(--ink); color:var(--cream); padding:48px; }
+  .contact-form h3{ font-family:'Cormorant Garamond', serif; font-size:24px; font-weight:500; margin-bottom:6px; }
+  .contact-form > p{ font-size:13.5px; color:rgba(237,232,218,0.6); margin-bottom:30px; font-weight:300; }
+  .form-row{ display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:18px; }
+  .field{ display:flex; flex-direction:column; gap:8px; margin-bottom:18px; }
+  .field label{ font-size:11.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--tan); }
+  .field input, .field select, .field textarea{
+    background:transparent; border:none; border-bottom:1px solid rgba(237,232,218,0.3);
+    color:var(--cream); font-family:'Jost',sans-serif; font-size:14.5px; padding:8px 2px;
+    font-weight:300;
+  }
+  .field textarea{ resize:vertical; min-height:90px; }
+  .field input::placeholder, .field textarea::placeholder{ color:rgba(237,232,218,0.35); }
+  .field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--tan); }
+  .field select option{ color:#1C1A16; }
+  .form-note{ font-size:11.5px; color:rgba(237,232,218,0.45); margin-top:18px; line-height:1.6; }
+
+  /* ---------- Footer ---------- */
+  footer{ background:var(--ink); color:rgba(237,232,218,0.55); padding:44px 0 30px; }
+  .footer-wrap{ display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:24px; }
+  .footer-brand{ display:flex; align-items:center; gap:12px; }
+  .footer-brand .brand-mark{ background:var(--tan); }
+  .footer-brand .brand-mark span{ color:var(--ink); }
+  .footer-brand div{ font-family:'Cormorant Garamond', serif; color:var(--cream); font-size:16px; }
+  .footer-links{ display:flex; gap:26px; font-size:12.5px; letter-spacing:0.03em; }
+  .footer-links a:hover{ color:var(--tan); }
+  .footer-bottom{ margin-top:30px; padding-top:20px; border-top:1px solid rgba(237,232,218,0.12); font-size:11.5px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:860px){
+    nav ul{ display:none; }
+    .nav-toggle{ display:flex; align-items:center; gap:6px; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; }
+    .nav-toggle .bars{ width:20px; height:14px; position:relative; }
+    .nav-toggle .bars span{ position:absolute; left:0; right:0; height:1px; background:var(--ink); }
+    .nav-toggle .bars span:nth-child(1){ top:0; }
+    .nav-toggle .bars span:nth-child(2){ top:6px; }
+    .nav-toggle .bars span:nth-child(3){ top:12px; }
+    nav.open ul{
+      display:flex; flex-direction:column; position:absolute; top:100%; left:0; right:0;
+      background:var(--cream); border-bottom:1px solid var(--line); padding:8px 28px 18px;
+    }
+    .hero .wrap, .about-hero .wrap, .contact-hero .wrap{ grid-template-columns:1fr; }
+    .hero-facet{ height:260px; order:-1; }
+    .svc-grid, .values-grid, .portfolio-grid{ grid-template-columns:1fr 1fr; }
+    .process-row{ grid-template-columns:1fr 1fr; }
+    .process-step{ border-right:none; border-bottom:1px solid rgba(237,232,218,0.18); padding-bottom:26px; }
+    .form-row{ grid-template-columns:1fr; }
+  }
+  @media (max-width:560px){
+    .svc-grid, .values-grid, .portfolio-grid, .process-row{ grid-template-columns:1fr; }
+    .about-stats{ gap:28px; }
+    .contact-form{ padding:32px 24px; }
+    .section{ padding:64px 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-wrap">
+    <a href="#" class="brand" onclick="goTo('home');return false;">
+      <div class="brand-mark hex"><span>E</span></div>
+      <div class="brand-name"><b>Edwards</b>Setting &amp; Restoration</div>
+    </a>
+    <button class="nav-toggle" onclick="document.getElementById('mainnav').classList.toggle('open')">
+      <span class="bars"><span></span><span></span><span></span></span> Menu
+    </button>
+    <nav id="mainnav">
+      <ul>
+        <li><a href="#" data-page="home" onclick="goTo('home');return false;" class="active">Home</a></li>
+        <li><a href="#" data-page="services" onclick="goTo('services');return false;">Services</a></li>
+        <li><a href="#" data-page="about" onclick="goTo('about');return false;">About</a></li>
+        <li><a href="#" data-page="portfolio" onclick="goTo('portfolio');return false;">Portfolio</a></li>
+        <li><a href="#" data-page="contact" onclick="goTo('contact');return false;">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<!-- ============ HOME ============ -->
+<div class="page active" id="home">
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <div class="hero-eyebrow">Bench jeweler &middot; est. Darke County, Ohio</div>
+        <h1>Every stone set true.<br>Every heirloom <em>made whole</em>.</h1>
+        <p>Edwards Setting &amp; Restoration is a one-bench jewelry studio specializing in precise stone setting and careful restoration of the pieces that carry your family's history &mdash; not mass production, just steady hands and an eye for the details other shops skip.</p>
+        <div class="hero-ctas">
+          <a href="#" class="btn btn-primary" onclick="goTo('services');return false;">View Services</a>
+          <a href="#" class="btn btn-ghost" onclick="goTo('contact');return false;">Request a Quote</a>
+        </div>
+      </div>
+      <div class="hero-facet">
+        <div class="facet-hex f1"></div>
+        <div class="facet-hex f2"></div>
+        <div class="facet-hex f3"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">What I Do</div>
+        <h2>Setting, resizing, and restoration &mdash; done by hand, done right.</h2>
+        <p>A short list of the work that comes across the bench most often. For the full range, visit the services page.</p>
+      </div>
+      <div class="svc-grid">
+        <div class="svc-card">
+          <svg class="svc-icon" viewBox="0 0 46 52"><polygon points="23,2 41,13 41,39 23,50 5,39 5,13" fill="none" stroke="#9C6B47" stroke-width="1.4"/><polygon points="23,15 32,22 28,37 18,37 14,22" fill="none" stroke="#C9A87C" stroke-width="1.2"/></svg>
+          <h3>Stone Setting</h3>
+          <p>Prong, bezel, channel, and pav&eacute; setting for new mountings or replacement stones.</p>
+        </div>
+        <div class="svc-card">
+          <svg class="svc-icon" viewBox="0 0 46 52"><circle cx="23" cy="26" r="18" fill="none" stroke="#9C6B47" stroke-width="1.4"/><circle cx="23" cy="26" r="10" fill="none" stroke="#C9A87C" stroke-width="1.2"/></svg>
+          <h3>Ring Sizing</h3>
+          <p>Sizing up or down without compromising the integrity of the band or its setting.</p>
+        </div>
+        <div class="svc-card">
+          <svg class="svc-icon" viewBox="0 0 46 52"><path d="M8 44 L30 10 L38 15 L16 49 Z" fill="none" stroke="#9C6B47" stroke-width="1.4"/><line x1="12" y1="38" x2="34" y2="4" stroke="#C9A87C" stroke-width="1.2"/></svg>
+          <h3>Restoration</h3>
+          <p>Bringing worn heirloom pieces back to a wearable, structurally sound condition.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="border-bottom:none; padding-bottom:100px;">
+    <div class="wrap" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:24px;">
+      <div>
+        <h2 class="serif" style="font-size:28px; font-weight:500;">Have a piece that needs attention?</h2>
+        <p style="color:var(--ink-soft); font-weight:300; margin-top:8px; max-width:440px;">Send a few photos and a description &mdash; most quotes go out within a couple of days.</p>
+      </div>
+      <a href="#" class="btn btn-dark" onclick="goTo('contact');return false;">Start a Quote</a>
+    </div>
+  </section>
+</div>
+
+<!-- ============ SERVICES ============ -->
+<div class="page" id="services">
+  <section class="section svc-hero" style="padding-top:64px;">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Services</div>
+        <h2>Precision work, priced by the piece.</h2>
+        <p>Every job is quoted individually after seeing the piece &mdash; metal, stone, and condition all affect the work involved. Below is the full range of what's done at the bench.</p>
+      </div>
+      <div class="svc-grid">
+        <div class="svc-card">
+          <svg class="svc-icon" viewBox="0 0 46 52"><polygon points="23,2 41,13 41,39 23,50 5,39 5,13" fill="none" stroke="#9C6B47" stroke-width="1.4"/><polygon points="23,15 32,22 28,37 18,37 14,22" fill="none" stroke="#C9A87C" stroke-width="1.2"/></svg>
+          <h3>Stone Setting</h3>
+          <p>Prong, bezel, channel, pav&eacute;, and flush settings for diamonds and colored stones, in new mountings or replacing a stone that's been lost.</p>
+        </div>
+        <div class="svc-card">
+          <svg class="svc-icon" viewBox="0 0 46 52"><circle cx="23" cy="26" r="18" fill="none" stroke="#9C6B47" stroke-width="1.4"/><circle cx="23" cy="26" r="10" fill="none" stroke="#C9A87C" stroke-width="1.2"/></svg>
+          <h3>Ring Sizing</h3>
+          <p>Sizing rings up or down, including pieces with existing stones or engraving that need extra care during the resize.</p>
+        </div>
+        <div class="svc-card">
+          <svg class="svc-icon" viewBox="0 0 46 52"><path d="M8 44 L30 10 L38 15 L16 49 Z" fill="none" stroke="#9C6B47" stroke-width="1.4"/><line x1="12" y1="38" x2="34" y2="4" stroke="#C9A87C" stroke-width="1.2"/></svg>
+          <h3>Heirloom Restoration</h3>
+          <p>Rebuilding worn shanks, replacing broken prongs, and reviving pieces passed down through a family so they're safe to wear again.</p>
+        </div>
+        <div class="svc-card">
+          <svg class="svc-icon" viewBox="0 0 46 52"><rect x="10" y="10" width="26" height="32" fill="none" stroke="#9C6B47" stroke-width="1.4"/><line x1="15" y1="18" x2="31" y2="18" stroke="#C9A87C" stroke-width="1.2"/><line x1="15" y1="26" x2="31" y2="26" stroke="#C9A87C" stroke-width="1.2"/><line x1="15" y1="34" x2="26" y2="34" stroke="#C9A87C" stroke-width="1.2"/></svg>
+          <h3>Prong &amp; Head Repair</h3>
+          <p>Re-tipping and rebuilding worn prongs before a stone is at risk of falling out &mdash; the single most common bench emergency.</p>
+        </div>
+        <div class="svc-card">
+          <svg class="svc-icon" viewBox="0 0 46 52"><path d="M23 4 C33 4 40 13 40 23 C40 34 32 42 23 48 C14 42 6 34 6 23 C6 13 13 4 23 4Z" fill="none" stroke="#9C6B47" stroke-width="1.4"/></svg>
+          <h3>Custom Mountings</h3>
+          <p>One-off custom settings built around a specific stone &mdash; an engagement ring, a redesigned family stone, or a new piece from scratch.</p>
+        </div>
+        <div class="svc-card">
+          <svg class="svc-icon" viewBox="0 0 46 52"><circle cx="19" cy="19" r="13" fill="none" stroke="#9C6B47" stroke-width="1.4"/><line x1="28" y1="28" x2="40" y2="40" stroke="#9C6B47" stroke-width="1.6"/></svg>
+          <h3>Inspection &amp; Cleaning</h3>
+          <p>A bench check of prongs, settings, and clasps, plus a professional clean &mdash; recommended yearly for rings worn daily.</p>
+          <div class="svc-note">Complimentary with any repair</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">How It Works</div>
+        <h2>From drop-off to done, in four steps.</h2>
+      </div>
+      <div class="process-row">
+        <div class="process-step">
+          <span class="num">01</span>
+          <h4>Send Photos</h4>
+          <p>A few clear photos and a description of what's needed, through the contact page or by text.</p>
+        </div>
+        <div class="process-step">
+          <span class="num">02</span>
+          <h4>Get a Quote</h4>
+          <p>A firm price and timeline before any work begins &mdash; no surprises once the piece is on the bench.</p>
+        </div>
+        <div class="process-step">
+          <span class="num">03</span>
+          <h4>The Work</h4>
+          <p>Most repairs take 3&ndash;10 business days; custom work and larger restorations take longer.</p>
+        </div>
+        <div class="process-step">
+          <span class="num">04</span>
+          <h4>Pickup or Ship</h4>
+          <p>Local pickup or fully insured return shipping, your choice.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ ABOUT ============ -->
+<div class="page" id="about">
+  <section class="section about-hero" style="padding-top:64px;">
+    <div class="wrap">
+      <figure class="about-portrait">
+        <div class="hex ph1"></div>
+        <div class="hex ph2"></div>
+        <figcaption>Photo of Benjamin at the bench coming soon</figcaption>
+      </figure>
+      <div class="about-copy">
+        <div class="eyebrow">About</div>
+        <h2>A bench, not a storefront &mdash; and that's the point.</h2>
+        <p>Benjamin Edwards founded Edwards Setting &amp; Restoration to do one thing well: careful, precise bench work on the jewelry people actually care about keeping. No case full of inventory to sell you on &mdash; just the tools, the loupe, and the piece in front of him.</p>
+        <p>Based in Darke County, Ohio, the shop takes on stone setting, sizing, and restoration work for local clients and for pieces mailed in from farther out. Every piece gets the same standard: it should leave the bench stronger than it arrived, with the setting done the way it should have been done the first time.</p>
+        <div class="about-stats">
+          <div class="stat"><b>1:1</b><span>Bench to client</span></div>
+          <div class="stat"><b>Ohio</b><span>Locally Based</span></div>
+          <div class="stat"><b>&infin;</b><span>Attention to detail</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section values">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Approach</div>
+        <h2>What guides the work</h2>
+      </div>
+      <div class="values-grid">
+        <div class="value-item">
+          <svg class="value-mark" viewBox="0 0 32 37"><polygon points="16,1 30,9 30,27 16,36 2,27 2,9" fill="none" stroke="#9C6B47" stroke-width="1.3"/></svg>
+          <div><h4>Honest Quotes</h4><p>A firm price before work starts, based on what the piece actually needs &mdash; not an upsell.</p></div>
+        </div>
+        <div class="value-item">
+          <svg class="value-mark" viewBox="0 0 32 37"><polygon points="16,1 30,9 30,27 16,36 2,27 2,9" fill="none" stroke="#9C6B47" stroke-width="1.3"/></svg>
+          <div><h4>Careful Handling</h4><p>Heirlooms are treated like they can't be replaced &mdash; because most of them can't.</p></div>
+        </div>
+        <div class="value-item">
+          <svg class="value-mark" viewBox="0 0 32 37"><polygon points="16,1 30,9 30,27 16,36 2,27 2,9" fill="none" stroke="#9C6B47" stroke-width="1.3"/></svg>
+          <div><h4>Built to Last</h4><p>Repairs are done to hold up under daily wear, not just to look right at pickup.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ PORTFOLIO ============ -->
+<div class="page" id="portfolio">
+  <section class="section" style="padding-top:64px; border-bottom:none;">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Portfolio</div>
+        <h2>A sample of work from the bench.</h2>
+        <p>Photography is being added as pieces are completed and clients give the go-ahead to share their work. Placeholder tiles below show how the gallery will be laid out.</p>
+      </div>
+      <div class="portfolio-grid">
+        <div class="p-item">
+          <div class="p-frame"><div class="p-frame fill g1"></div><span class="p-tag">Prong reset &middot; solitaire ring</span></div>
+          <div class="p-caption"><h4>Solitaire Prong Reset</h4><p>Platinum, replaced all six prongs</p></div>
+        </div>
+        <div class="p-item">
+          <div class="p-frame"><div class="p-frame fill g2"></div><span class="p-tag">Shank restoration</span></div>
+          <div class="p-caption"><h4>Vintage Band Restoration</h4><p>14k gold, worn shank rebuilt</p></div>
+        </div>
+        <div class="p-item">
+          <div class="p-frame"><div class="p-frame fill g3"></div><span class="p-tag">Custom bezel setting</span></div>
+          <div class="p-caption"><h4>Custom Bezel Pendant</h4><p>Sterling silver, sapphire center</p></div>
+        </div>
+        <div class="p-item">
+          <div class="p-frame"><div class="p-frame fill g2"></div><span class="p-tag">Channel set band</span></div>
+          <div class="p-caption"><h4>Channel-Set Wedding Band</h4><p>White gold, five-stone channel</p></div>
+        </div>
+        <div class="p-item">
+          <div class="p-frame"><div class="p-frame fill g1"></div><span class="p-tag">Heirloom repair</span></div>
+          <div class="p-caption"><h4>Grandmother's Ring, Restored</h4><p>Rose gold, full restoration</p></div>
+        </div>
+        <div class="p-item">
+          <div class="p-frame"><div class="p-frame fill g3"></div><span class="p-tag">Pav&eacute; detail</span></div>
+          <div class="p-caption"><h4>Pav&eacute; Halo Setting</h4><p>14k gold, 32-stone halo</p></div>
+        </div>
+      </div>
+      <div class="portfolio-note"><b>Note:</b> These tiles are placeholders standing in for real photography. Swap them out with before/after shots of finished pieces as they're photographed &mdash; that's what will sell the work here.</div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ CONTACT ============ -->
+<div class="page" id="contact">
+  <section class="section contact-hero" style="padding-top:64px; border-bottom:none;">
+    <div class="wrap">
+      <div class="contact-info">
+        <div class="eyebrow">Contact</div>
+        <h2>Let's talk about your piece.</h2>
+        <p>Reach out with photos and a short description of what's needed. Most quotes go out within a couple of business days.</p>
+
+        <div class="info-block">
+          <svg class="info-mark" viewBox="0 0 26 30"><polygon points="13,1 24,7 24,22 13,29 2,22 2,7" fill="none" stroke="#9C6B47" stroke-width="1.2"/></svg>
+          <div><h4>Email</h4><p>hello@edwardssettingrestoration.com</p></div>
+        </div>
+        <div class="info-block">
+          <svg class="info-mark" viewBox="0 0 26 30"><polygon points="13,1 24,7 24,22 13,29 2,22 2,7" fill="none" stroke="#9C6B47" stroke-width="1.2"/></svg>
+          <div><h4>Phone / Text</h4><p>(937) 000-0000</p></div>
+        </div>
+        <div class="info-block">
+          <svg class="info-mark" viewBox="0 0 26 30"><polygon points="13,1 24,7 24,22 13,29 2,22 2,7" fill="none" stroke="#9C6B47" stroke-width="1.2"/></svg>
+          <div><h4>Location</h4><p>Darke County, Ohio &middot; local pickup by appointment, mail-in service available nationwide</p></div>
+        </div>
+        <div class="info-block">
+          <svg class="info-mark" viewBox="0 0 26 30"><polygon points="13,1 24,7 24,22 13,29 2,22 2,7" fill="none" stroke="#9C6B47" stroke-width="1.2"/></svg>
+          <div><h4>Hours</h4><p>By appointment, evenings and weekends</p></div>
+        </div>
+      </div>
+
+      <div class="contact-form">
+        <h3>Request a Quote</h3>
+        <p>Fill this out and attach photos over email once you hear back &mdash; forms don't accept file uploads here.</p>
+        <div class="form-row">
+          <div class="field"><label>Name</label><input type="text" placeholder="Your full name"></div>
+          <div class="field"><label>Email</label><input type="email" placeholder="you@email.com"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Phone</label><input type="tel" placeholder="(937) 000-0000"></div>
+          <div class="field">
+            <label>Service Needed</label>
+            <select>
+              <option>Stone Setting</option>
+              <option>Ring Sizing</option>
+              <option>Restoration</option>
+              <option>Prong / Head Repair</option>
+              <option>Custom Mounting</option>
+              <option>Inspection &amp; Cleaning</option>
+              <option>Not Sure</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Tell me about the piece</label>
+          <textarea placeholder="Metal type, stone, what needs to be done, and any deadline you're working with..."></textarea>
+        </div>
+        <a href="#" class="btn btn-primary" style="margin-top:8px;" onclick="alert('This form is a design placeholder — connect it to email or a form service to make it live.'); return false;">Send Request</a>
+        <p class="form-note">This form is a working layout, not yet wired to send email. Connect it to a form service (or a mailto link) before publishing live.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-wrap">
+      <div class="footer-brand">
+        <div class="brand-mark hex"><span>E</span></div>
+        <div>Edwards Setting &amp; Restoration</div>
+      </div>
+      <div class="footer-links">
+        <a href="#" onclick="goTo('services');return false;">Services</a>
+        <a href="#" onclick="goTo('about');return false;">About</a>
+        <a href="#" onclick="goTo('portfolio');return false;">Portfolio</a>
+        <a href="#" onclick="goTo('contact');return false;">Contact</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Edwards Setting &amp; Restoration LLC. All rights reserved.</span>
+      <span>Darke County, Ohio</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function goTo(id){
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+    document.querySelectorAll('nav a[data-page="'+id+'"]').forEach(a => a.classList.add('active'));
+    document.getElementById('mainnav').classList.remove('open');
+    window.scrollTo({top:0, behavior:'instant'});
+  }
+</script>
+</body>
+</html>
